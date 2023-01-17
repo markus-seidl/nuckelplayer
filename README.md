@@ -12,7 +12,7 @@ Doesn't have any ads, tracking, subscriptions or anything else.
 
 ![Screenshot 1](screenshot_overview.jpg)
 
-![Screenshot 2](screenshot_player.jpg)
+![Screenshot 2](screenshot_videoplayer.jpg)
 
 # License
 
