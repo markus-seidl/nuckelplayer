@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/idCVVideo"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:layout_margin="3dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/idIVThumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:scaleType="centerCrop"
+            android:src="@color/grey" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="10dp"
+            android:text="Video Title (Loading...)"
+            android:id="@+id/idTVVideoTitle"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            app:tint="@color/white"
+            android:background="@color/black_shade_1"
+            android:textSize="15sp" />
+            />
+
+        <!--        <ImageView-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_alignParentStart="true"-->
+        <!--            android:layout_alignParentLeft="true"-->
+        <!--            android:layout_alignParentBottom="true"-->
+        <!--            android:layout_marginBottom="10dp"-->
+        <!--            android:layout_marginStart="10dp"-->
+        <!--            android:src="@drawable/ic_play"-->
+        <!--            app:tint="@color/white" />-->
+
+    </RelativeLayout>
+
+
+</androidx.cardview.widget.CardView>
