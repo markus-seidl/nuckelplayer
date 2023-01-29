@@ -17,6 +17,7 @@ import android.graphics.Bitmap;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Size;
 import android.widget.Toast;
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements VideoRVItem.Video
         videoRV.setLayoutManager(gridLayoutManager);
         videoRV.setAdapter(videoRVItem);
 
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, STORAGE_PERMISSION);
         } else {
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements VideoRVItem.Video
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
-        if(newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             gridLayoutManager.setSpanCount(4);
         } else {
             gridLayoutManager.setSpanCount(2);
@@ -90,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements VideoRVItem.Video
     @SuppressLint("NotifyDataSetChanged")
     private void getVideos() {
         System.out.println("getVideos() called");
+
         ContentResolver contentResolver = getContentResolver();
         Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         try (var cursor = contentResolver.query(uri, null, null, null)) {

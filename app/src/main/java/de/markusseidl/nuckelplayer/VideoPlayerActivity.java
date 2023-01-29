@@ -1,9 +1,7 @@
 package de.markusseidl.nuckelplayer;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,26 +25,21 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private ImageButton overviewIB;
 
     private VideoView videoView;
-    private RelativeLayout controlsRL, videoRL;
-    boolean isOpen = true; // show custom controls?
+
+    private RelativeLayout videoRL;
     private int currentVideoIdx;
 
     private boolean allowPlayOnce = true;
 
-    private Handler autoHideControlsHandler;
-    private final Runnable autoHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            hideControls();
-            autoHideControlsHandler.removeCallbacks(autoHideRunnable);
-        }
-    };
+    private ControlStateHelper controlState;
+
+    private int lastKnownSeekPosition = 0;
 
     private final Runnable blockNextRunnable = new Runnable() {
         @Override
         public void run() {
             enableButton(nextIB);
-            autoHideControlsHandler.removeCallbacks(blockNextRunnable);
+            controlState.autoHideControlsHandler.removeCallbacks(blockNextRunnable);
         }
     };
 
@@ -54,9 +47,21 @@ public class VideoPlayerActivity extends AppCompatActivity {
         @Override
         public void run() {
             enableButton(prevIB);
-            autoHideControlsHandler.removeCallbacks(blockPrevRunnable);
+            controlState.autoHideControlsHandler.removeCallbacks(blockPrevRunnable);
         }
     };
+
+    private final Runnable blockPositionSaver = new Runnable() {
+        @Override
+        public void run() {
+            if (videoView.isPlaying()) {
+                lastKnownSeekPosition = videoView.getCurrentPosition();
+                System.out.println("Last known position: " + lastKnownSeekPosition);
+            }
+            positionSaver.postDelayed(blockPositionSaver, 500);
+        }
+    };
+    private Handler positionSaver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,18 +79,29 @@ public class VideoPlayerActivity extends AppCompatActivity {
         overviewIB = findViewById(R.id.idIBToOverview);
 
         videoView = findViewById(R.id.idVideoView);
-        controlsRL = findViewById(R.id.idRLControls);
         videoRL = findViewById(R.id.idRLVideo);
-        autoHideControlsHandler = new Handler(Looper.getMainLooper());
+        var controlsRL = findViewById(R.id.idRLControls);
+        controlState = new ControlStateHelper((RelativeLayout) controlsRL);
+        positionSaver = new Handler(Looper.getMainLooper());
+        positionSaver.postDelayed(blockPositionSaver, 500);
+
+
+        videoView.setOnCompletionListener(mp -> {
+            controlState.onPause();
+            playPauseIB.setImageResource(R.drawable.ic_play);
+        });
 
         videoView.setOnPreparedListener(mp -> {
             System.out.println("Video prepared");
-            if(allowPlayOnce) {
+            System.out.println("Last known position: " + lastKnownSeekPosition);
+            videoView.seekTo(lastKnownSeekPosition);
+            if (allowPlayOnce) {
                 videoView.start();
+                controlState.onPlay();
                 allowPlayOnce = false;
                 playPauseIB.setImageResource(R.drawable.ic_pause);
             } else {
-                showControls();
+                controlState.onPause();
             }
         });
         videoView.setOnErrorListener((mp, what, extra) -> {
@@ -94,43 +110,59 @@ public class VideoPlayerActivity extends AppCompatActivity {
             return false;
         });
 
-        videoView.setOnCompletionListener(mp -> {
-            showControls();
-        });
-
         playPauseIB.setOnClickListener(v -> {
             if (videoView.isPlaying()) {
                 videoView.pause();
+                controlState.onPause();
                 playPauseIB.setImageResource(R.drawable.ic_play);
-
             } else {
                 videoView.start();
+                controlState.onPlay();
+                System.out.println("Last known position: " + lastKnownSeekPosition);
+                videoView.seekTo(lastKnownSeekPosition);
                 playPauseIB.setImageResource(R.drawable.ic_pause);
             }
-            postponeAutoHideControls();
         });
         playPauseIB.setImageResource(R.drawable.ic_pause);
 
         forwardIB.setOnClickListener(v -> {
             final int skipTime = 10_000;
-            videoView.seekTo(Math.min(videoView.getCurrentPosition() + skipTime, videoView.getDuration()));
-            postponeAutoHideControls();
+            if (videoView.getCurrentPosition() + skipTime > videoView.getDuration()) {
+                //playVideoIdx(currentVideoIdx + 1);
+            } else {
+                videoView.seekTo(videoView.getCurrentPosition() + skipTime);
+                if (!videoView.isPlaying()) {
+                    // If video is paused update position, bc seekTo doesn't fire update when
+                    // video is paused
+                    lastKnownSeekPosition += skipTime;
+                }
+            }
+            controlState.postponeAutoHideControls();
         });
 
         backIB.setOnClickListener(v -> {
             final int skipTime = 10_000;
-            videoView.seekTo(Math.max(videoView.getCurrentPosition() - skipTime, 0));
-            postponeAutoHideControls();
+            int newPosition = videoView.getCurrentPosition() - skipTime;
+            if (newPosition < 0) {
+                newPosition = 0;
+            }
+            videoView.seekTo(newPosition);
+            if (!videoView.isPlaying()) {
+                // If video is paused update position, bc seekTo doesn't fire update when
+                // video is paused
+                lastKnownSeekPosition = newPosition;
+            }
+            controlState.postponeAutoHideControls();
         });
 
         nextIB.setOnClickListener(v -> {
             playVideoIdx(currentVideoIdx + 1);
-            postponeAutoHideControls();
+            controlState.postponeAutoHideControls();
             blockNextControl();
         });
         prevIB.setOnClickListener(v -> {
             playVideoIdx(currentVideoIdx - 1);
-            postponeAutoHideControls();
+            controlState.postponeAutoHideControls();
             blockPrevControl();
         });
 
@@ -139,35 +171,32 @@ public class VideoPlayerActivity extends AppCompatActivity {
         });
 
         videoRL.setOnClickListener(v -> {
-            if (isOpen) {
-                hideControls();
-                isOpen = false;
-            } else {
-                showControls();
-                isOpen = true;
-            }
+            controlState.onTap();
         });
 
         var controller = getWindow().getDecorView().getWindowInsetsController();
         controller.hide(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
 
 //        showControls();
-        hideControls();
+        controlState.hideControls();
         playVideoIdx(startVideoIdx);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        System.out.println("onPause");
+
         playPauseIB.setImageResource(R.drawable.ic_pause);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        System.out.println("onResume");
 
         playPauseIB.setImageResource(R.drawable.ic_play);
-        showControls();
+        controlState.showControls();
     }
 
 
@@ -188,32 +217,22 @@ public class VideoPlayerActivity extends AppCompatActivity {
         var videoPath = infos.get(currentVideoIdx).getVideoPath();
         videoNameTV.setText(videoName);
         allowPlayOnce = true;  // start playing as soon as it's prepared
+        lastKnownSeekPosition = 0;
         videoView.setVideoURI(Uri.parse(videoPath));
         playPauseIB.setImageResource(R.drawable.ic_pause);
     }
 
-    private void hideControls() {
-        controlsRL.setVisibility(View.GONE);
-
-        removeAutoHideHandlers();
-    }
-
-    private void showControls() {
-        controlsRL.setVisibility(View.VISIBLE);
-
-        postponeAutoHideControls();
-    }
 
     private void blockNextControl() {
         disableButton(nextIB);
 
-        autoHideControlsHandler.postDelayed(blockNextRunnable, 1000);
+        controlState.autoHideControlsHandler.postDelayed(blockNextRunnable, 1000);
     }
 
     private void blockPrevControl() {
         disableButton(prevIB);
 
-        autoHideControlsHandler.postDelayed(blockPrevRunnable, 1000);
+        controlState.autoHideControlsHandler.postDelayed(blockPrevRunnable, 1000);
     }
 
     private void disableButton(ImageButton button) {
@@ -226,22 +245,81 @@ public class VideoPlayerActivity extends AppCompatActivity {
         button.setColorFilter(getResources().getColor(R.color.white, null));
     }
 
-    private void postponeAutoHideControls() {
-        removeAutoHideHandlers();
-        autoHideControlsHandler.postDelayed(autoHideRunnable, 2000);
-    }
-
-    private void removeAutoHideHandlers() {
-        autoHideControlsHandler.removeCallbacks(autoHideRunnable);
-    }
-
     @Override
     protected void onStop() {
         super.onStop();
+        System.out.println("onStop");
 
-        removeAutoHideHandlers();
-        autoHideControlsHandler.removeCallbacks(blockNextRunnable);
-        autoHideControlsHandler.removeCallbacks(blockPrevRunnable);
+        controlState.removeAutoHideHandlers();
+        controlState.autoHideControlsHandler.removeCallbacks(blockNextRunnable);
+        controlState.autoHideControlsHandler.removeCallbacks(blockPrevRunnable);
     }
 
+    public static class ControlStateHelper {
+        private RelativeLayout controlsRL;
+        protected Handler autoHideControlsHandler;
+        private boolean isPlaying;
+        private boolean isOpen;
+        private final Runnable autoHideRunnable = new Runnable() {
+            @Override
+            public void run() {
+                hideControls();
+                autoHideControlsHandler.removeCallbacks(autoHideRunnable);
+            }
+        };
+
+        public ControlStateHelper(RelativeLayout controlsRL) {
+            this.controlsRL = controlsRL;
+            autoHideControlsHandler = new Handler(Looper.getMainLooper());
+        }
+
+        protected void onPause() {
+            isPlaying = false;
+            showControls();
+        }
+
+        protected void onPlay() {
+            isPlaying = true;
+
+            hideControls();
+        }
+
+        protected void hideControls() {
+            isOpen = false;
+            controlsRL.setVisibility(View.GONE);
+
+            removeAutoHideHandlers();
+        }
+
+        protected void showControls() {
+            isOpen = true;
+            controlsRL.setVisibility(View.VISIBLE);
+
+            if (isPlaying) {
+                postponeAutoHideControls();
+            } else {
+                removeAutoHideHandlers();
+            }
+        }
+
+
+        private void postponeAutoHideControls() {
+            removeAutoHideHandlers();
+            autoHideControlsHandler.postDelayed(autoHideRunnable, 2000);
+        }
+
+        private void removeAutoHideHandlers() {
+            autoHideControlsHandler.removeCallbacks(autoHideRunnable);
+        }
+
+        public void onTap() {
+            if (isPlaying) {
+                if (isOpen) {
+                    hideControls();
+                } else {
+                    showControls();
+                }
+            }
+        }
+    }
 }
