@@ -4,19 +4,60 @@
     android:id="@+id/idRLControls"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black_shade_1"
-    >
+    android:background="@color/black_shade_1">
+
     <TextView
+        android:id="@+id/idTVVideoTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        android:layout_margin="5dp"
         android:gravity="center"
         android:padding="10dp"
-        android:id="@+id/idTVVideoTitle"
         android:text="Video Title (Loading...)"
-        android:textSize="30dp"
         android:textAlignment="center"
-        android:textColor="@color/white" />
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="55dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/idIBSkipPrev"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:gravity="center"
+            android:padding="10dp"
+            android:src="@drawable/skip_prev"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            app:tint="@color/white" />
+
+        <ImageButton
+            android:id="@+id/idIBSkipNext"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:gravity="center"
+            android:padding="10dp"
+            android:src="@drawable/skip_next"
+            app:tint="@color/white" />
+    </LinearLayout>
+
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -31,8 +72,8 @@
             android:layout_height="100dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:background="@android:color/transparent"
             android:layout_weight="1"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_replay"
             app:tint="@color/white" />
 
@@ -42,8 +83,8 @@
             android:layout_height="100dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:background="@android:color/transparent"
             android:layout_weight="1"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_play"
             app:tint="@color/white" />
 
@@ -53,8 +94,8 @@
             android:layout_height="100dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:background="@android:color/transparent"
             android:layout_weight="1"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_forward"
             app:tint="@color/white" />
     </LinearLayout>
@@ -63,25 +104,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="25dp"
+        android:layout_marginTop="55dp"
         android:gravity="center"
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/idIBSkipPrev"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:gravity="center"
-            android:padding="10dp"
-            android:src="@drawable/skip_prev"
             app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/idIBToOverview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:gravity="center"
@@ -90,15 +129,14 @@
             app:tint="@color/white" />
 
         <ImageButton
-            android:id="@+id/idIBSkipNext"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:gravity="center"
-            android:padding="10dp"
-            android:src="@drawable/skip_next"
             app:tint="@color/white" />
+
     </LinearLayout>
 
 </RelativeLayout>
