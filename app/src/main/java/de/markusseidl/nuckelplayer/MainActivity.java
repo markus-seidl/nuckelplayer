@@ -101,7 +101,10 @@ public class MainActivity extends AppCompatActivity implements VideoRVItem.Video
                     @SuppressLint("Range") String videoTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.TITLE)); // TODO
                     @SuppressLint("Range") String videoPath = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.DATA)); // TODO
 
-                    VideoRepository.getInstance().add(new VideoInformation(videoTitle, videoPath, null));
+                    var newVideo = VideoRepository.getInstance().add(new VideoInformation(videoTitle, videoPath, null));
+                    if (!newVideo) {
+                        continue; // skip already known videos
+                    }
                     final int index = VideoRepository.getInstance().getVideoInformations().size() - 1;
                     backgroundThreadExecutor.execute(() -> {
                         Bitmap videoThumbnail = null;
