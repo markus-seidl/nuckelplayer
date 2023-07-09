@@ -1,14 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainRelativeLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:background="@color/black_shade_1"
+    tools:context=".MainActivity"
+    android:orientation="vertical">
 
-    <androidx.recyclerview.widget.RecyclerView
+    <ImageButton
+        android:id="@+id/btnMainVideos"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/idRVVideos" />
+        android:layout_height="160dp"
+        android:src="@drawable/video_player"
+        app:tint="@color/white" />
 
-</RelativeLayout>
+    <ImageButton
+        android:id="@+id/btnMainCamera"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:src="@drawable/photo_camera"
+        app:tint="@color/white" />
+</LinearLayout>
