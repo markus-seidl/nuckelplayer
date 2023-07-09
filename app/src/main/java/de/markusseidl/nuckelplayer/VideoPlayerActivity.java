@@ -63,6 +63,8 @@ public class VideoPlayerActivity extends AppCompatActivity {
     };
     private Handler positionSaver;
 
+    private boolean videoEnded;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +91,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
         videoView.setOnCompletionListener(mp -> {
             controlState.onPause();
             playPauseIB.setImageResource(R.drawable.ic_play);
+            videoEnded = true;
         });
 
         videoView.setOnPreparedListener(mp -> {
@@ -116,10 +119,19 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 controlState.onPause();
                 playPauseIB.setImageResource(R.drawable.ic_play);
             } else {
+                // if the video is at the end, let play reset to the beginning of the clip
+                System.out.println("Current position: " + videoView.getCurrentPosition() + " Duration: " + videoView.getDuration());
+
+                if(videoEnded) {
+                    videoView.seekTo(0);
+                    lastKnownSeekPosition = 0;
+                    videoEnded = false;
+                } else if(Math.abs(lastKnownSeekPosition - videoView.getCurrentPosition()) > 1000) {
+                    videoView.seekTo(lastKnownSeekPosition);
+                }
                 videoView.start();
                 controlState.onPlay();
                 System.out.println("Last known position: " + lastKnownSeekPosition);
-                videoView.seekTo(lastKnownSeekPosition);
                 playPauseIB.setImageResource(R.drawable.ic_pause);
             }
         });
@@ -141,6 +153,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
         });
 
         backIB.setOnClickListener(v -> {
+            videoEnded = false;
             final int skipTime = 10_000;
             int newPosition = videoView.getCurrentPosition() - skipTime;
             if (newPosition < 0) {
@@ -156,11 +169,13 @@ public class VideoPlayerActivity extends AppCompatActivity {
         });
 
         nextIB.setOnClickListener(v -> {
+            videoEnded = false;
             playVideoIdx(currentVideoIdx + 1);
             controlState.postponeAutoHideControls();
             blockNextControl();
         });
         prevIB.setOnClickListener(v -> {
+            videoEnded = false;
             playVideoIdx(currentVideoIdx - 1);
             controlState.postponeAutoHideControls();
             blockPrevControl();
